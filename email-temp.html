@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-mail Temporário Avançado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --background-color: #f6f8fa;
+            --text-color: #202124;
+            --card-background: #ffffff;
+            --border-color: #dadce0;
+            --hover-color: #f1f3f4;
+            --unread-color: #e8f0fe;
+            --border-radius: 8px;
+            --box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--card-background);
+            padding: 16px 20px;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 16px;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: #1765cc;
+        }
+
+        #getEmails {
+            background-color: var(--secondary-color);
+        }
+
+        #getEmails:hover {
+            background-color: #2d9047;
+        }
+
+        .email-container {
+            display: flex;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        #emailList {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 600px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .email-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .email-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .email-item.unread {
+            background-color: var(--unread-color);
+            font-weight: 500;
+        }
+
+        .email-subject {
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .email-from, .email-date {
+            font-size: 12px;
+            color: #5f6368;
+        }
+
+        #emailContent {
+            flex: 2;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .email-header {
+            margin-bottom: 20px;
+        }
+
+        .email-header h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .email-header p {
+            font-size: 14px;
+            color: #5f6368;
+            margin-bottom: 4px;
+        }
+
+        .email-body {
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .attachment {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            padding: 6px 12px;
+            background-color: var(--hover-color);
+            border-radius: var(--border-radius);
+            font-size: 12px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .attachment:hover {
+            background-color: #e8eaed;
+        }
+
+        #backToInbox {
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .email-container {
+                flex-direction: column;
+            }
+
+            #emailList, #emailContent {
+                max-height: none;
+                border-right: none;
+            }
+
+            .input-group, .button-group {
+                flex-direction: column;
+            }
+
+            input, select, button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-envelope"></i>
+                <h1>E-mail Temporário Avançado</h1>
+            </div>
+        </header>
+
+        <div class="input-group">
+            <input type="text" id="custom-username" placeholder="Nome de usuário personalizado (opcional)">
+            <select id="domainList"></select>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="email" placeholder="Seu e-mail temporário" readonly>
+        </div>
+
+        <div class="button-group">
+            <button id="generateEmail"><i class="fas fa-plus"></i> Gerar E-mail</button>
+            <button id="newEmail"><i class="fas fa-sync"></i> Novo E-mail</button>
+            <button id="getEmails"><i class="fas fa-search"></i> Buscar E-mails</button>
+        </div>
+
+        <button id="backToInbox"><i class="fas fa-arrow-left"></i> Voltar para Caixa de Entrada</button>
+
+        <div class="email-container">
+            <ul id="emailList"></ul>
+            <div id="emailContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://www.1secmail.com/api/v1/';
+        let activeEmail = '';
+        let refreshInterval;
+        let currentEmails = [];
+
+        const domainList = document.getElementById('domainList');
+        const customUsername = document.getElementById('custom-username');
+        const generateEmailButton = document.getElementById('generateEmail');
+        const newEmailButton = document.getElementById('newEmail');
+        const getEmailsButton = document.getElementById('getEmails');
+        const emailInput = document.getElementById('email');
+        const emailList = document.getElementById('emailList');
+        const emailContent = document.getElementById('emailContent');
+        const backToInbox = document.getElementById('backToInbox');
+        const emailContainer = document.querySelector('.email-container');
+
+        // Função para buscar dados da API
+        async function fetchData(url) {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        }
+
+        // Função para obter a lista de domínios
+        async function getDomains() {
+            const url = `${API_BASE_URL}?action=getDomainList`;
+            return fetchData(url);
+        }
+
+        // Função para gerar um novo e-mail temporário
+        async function generateEmail() {
+            const username = customUsername.value || null;
+            const domain = domainList.value;
+            if (username) {
+                return `${username}@${domain}`;
+            } else {
+                const url = `${API_BASE_URL}?action=genRandomMailbox&count=1`;
+                const [email] = await fetchData(url);
+                return email;
+            }
+        }
+
+        // Função para obter os detalhes dos emails recebidos
+        async function getEmailDetails(email) {
+            const [username, domain] = email.split('@');
+            const url = `${API_BASE_URL}?action=getMessages&login=${username}&domain=${domain}`;
+            return fetchData(url);
+        }
+
+        // Função para obter o conteúdo de um email específico
+        async function getEmailContent(email, id) {
+            const [username, domain] = email.split('@');
+            const url = `${API_BASE_URL}?action=readMessage&login=${username}&domain=${domain}&id=${id}`;
+            return fetchData(url);
+        }
+
+        // Função para criar um link para download de anexo
+        function createAttachmentLink(email, id, file) {
+            const [username, domain] = email.split('@');
+            return `${API_BASE_URL}?action=download&login=${username}&domain=${domain}&id=${id}&file=${encodeURIComponent(file)}`;
+        }
+
+        // Função para mostrar a lista de emails
+        function showEmailList() {
+            emailList.style.display = 'block';
+            emailContent.style.display = 'none';
+            backToInbox.style.display = 'none';
+            emailContainer.style.flexDirection = 'row';
+        }
+
+        // Função para mostrar o conteúdo do email
+        function showEmailContent() {
+            emailList.style.display = 'block';
+            emailContent.style.display = 'block';
+            backToInbox.style.display = 'block';
+            emailContainer.style.flexDirection = 'row';
+        }
+
+        // Função para exibir a lista de emails recebidos
+        async function displayEmails() {
+            if (!activeEmail) {
+                alert("Por favor, gere um e-mail temporário primeiro.");
+                return;
+            }
+
+            try {
+                const emails = await getEmailDetails(activeEmail);
+                currentEmails = emails;
+                emailList.innerHTML = '';
+
+                for (const email of emails) {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'email-item' + (email.seen ? '' : ' unread');
+                    listItem.innerHTML = `
+                        <div class="email-subject">${email.subject}</div>
+                        <div class="email-from">${email.from}</div>
+                        <div class="email-date">${email.date}</div>
+                    `;
+                    listItem.addEventListener('click', () => displayEmailContent(email.id));
+                    emailList.appendChild(listItem);
+                }
+
+                showEmailList();
+            } catch (error) {
+                emailList.innerHTML = `<li>Erro ao buscar e-mails: ${error.message}</li>`;
+            }
+        }
+
+        // Função para exibir o conteúdo do email selecionado
+        async function displayEmailContent(id) {
+            try {
+                const fullEmail = await getEmailContent(activeEmail, id);
+                let attachmentsHtml = '';
+                if (fullEmail.attachments && fullEmail.attachments.length > 0) {
+                    attachmentsHtml = '<div class="attachments">Anexos: ' +
+                        fullEmail.attachments.map(att => 
+                            `<a href="${createAttachmentLink(activeEmail, id, att.filename)}" class="attachment" download><i class="fas fa-paperclip"></i> ${att.filename}</a>`
+                        ).join('') + '</div>';
+                }
+
+                emailContent.innerHTML = `
+                    <div class="email-header">
+                        <h2>${fullEmail.subject}</h2>
+                        <p><strong>De:</strong> ${fullEmail.from}</p>
+                        <p><strong>Data:</strong> ${fullEmail.date}</p>
+                        ${attachmentsHtml}
+                    </div>
+                    <div class="email-body">${fullEmail.htmlBody || fullEmail.textBody}</div>
+                `;
+
+                showEmailContent();
+            } catch (error) {
+                emailContent.innerHTML = `<p>Erro ao carregar o conteúdo do e-mail: ${error.message}</p>`;
+            }
+        }
+
+        // Função para iniciar a atualização automática da lista de emails
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            refreshInterval = setInterval(displayEmails, 10000);
+        }
+
+        // Função para parar a atualização automática da lista de emails
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        }
+
+        // Evento para gerar um novo email temporário
+        generateEmailButton.addEventListener('click', async () => {
+            activeEmail = await generateEmail();
+            emailInput.value = activeEmail;
+            localStorage.setItem('tempEmail', activeEmail);
+            console.log("E-mail gerado: " + activeEmail);
+            startAutoRefresh();
+            displayEmails();
+        });
+
+        // Evento para gerar um novo email temporário com um novo nome de usuário
+        newEmailButton.addEventListener('click', async () => {
+            customUsername.value = '';
+            await generateEmailButton.click();
+        });
+
+        // Evento para buscar e exibir os emails recebidos
+        getEmailsButton.addEventListener('click', displayEmails);
+
+        // Evento para voltar para a lista de emails
+        backToInbox.addEventListener('click', showEmailList);
+
+        // Inicialização do componente
+        (async function init() {
+            const domains = await getDomains();
+            domainList.innerHTML = domains.map(domain => `<option value="${domain}">${domain}</option>`).join('');
+            const savedEmail = localStorage.getItem('tempEmail');
+            if (savedEmail) {
+                activeEmail = savedEmail;
+                emailInput.value = savedEmail;
+                startAutoRefresh();
+                displayEmails();
+            }
+        })();
+    </script>
+</body>
+</html>
