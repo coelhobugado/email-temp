@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-mail Temporário Avançado</title>
+    <title>E-mail Temporário</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <style>
@@ -257,7 +257,7 @@
         </header>
 
         <div class="input-group">
-            <input type="text" id="custom-username" placeholder="Nome de usuário personalizado (opcional)">
+            <input type="text" id="customUsername" placeholder="Nome de usuário personalizado (opcional)">
             <select id="domainList"></select>
         </div>
 
@@ -286,7 +286,7 @@
         let currentEmails = [];
 
         const domainList = document.getElementById('domainList');
-        const customUsername = document.getElementById('custom-username');
+        const customUsername = document.getElementById('customUsername');
         const generateEmailButton = document.getElementById('generateEmail');
         const newEmailButton = document.getElementById('newEmail');
         const getEmailsButton = document.getElementById('getEmails');
@@ -325,7 +325,7 @@
         }
 
         // Função para obter os detalhes dos emails recebidos
-        async function getEmailDetails(email) {
+        async function getEmailsDetails(email) {
             const [username, domain] = email.split('@');
             const url = `${API_BASE_URL}?action=getMessages&login=${username}&domain=${domain}`;
             return fetchData(url);
@@ -344,20 +344,46 @@
             return `${API_BASE_URL}?action=download&login=${username}&domain=${domain}&id=${id}&file=${encodeURIComponent(file)}`;
         }
 
-        // Função para mostrar a lista de emails
-        function showEmailList() {
-            emailList.style.display = 'block';
-            emailContent.style.display = 'none';
-            backToInbox.style.display = 'none';
-            emailContainer.style.flexDirection = 'row';
+        // Função para renderizar um item da lista de emails
+        function renderEmailListItem(email) {
+            const listItem = document.createElement('li');
+            listItem.className = 'email-item' + (email.seen ? '' : ' unread');
+            listItem.innerHTML = `
+                <div class="email-subject">${email.subject}</div>
+                <div class="email-from">${email.from}</div>
+                <div class="email-date">${email.date}</div>
+            `;
+            listItem.addEventListener('click', () => displayEmailContent(email.id));
+            return listItem;
         }
 
-        // Função para mostrar o conteúdo do email
-        function showEmailContent() {
-            emailList.style.display = 'block';
-            emailContent.style.display = 'block';
-            backToInbox.style.display = 'block';
-            emailContainer.style.flexDirection = 'row';
+        // Função para renderizar a lista de emails
+        function renderEmailList(emails) {
+            emailList.innerHTML = ''; // Limpa a lista antes de renderizar
+            emails.forEach(email => {
+                emailList.appendChild(renderEmailListItem(email));
+            });
+        }
+
+        // Função para renderizar o conteúdo de um email
+        function renderEmailContent(fullEmail) {
+            let attachmentsHtml = '';
+            if (fullEmail.attachments && fullEmail.attachments.length > 0) {
+                attachmentsHtml = '<div class="attachments">Anexos: ' +
+                    fullEmail.attachments.map(att => 
+                        `<a href="${createAttachmentLink(activeEmail, fullEmail.id, att.filename)}" class="attachment" download><i class="fas fa-paperclip"></i> ${att.filename}</a>`
+                    ).join('') + '</div>';
+            }
+
+            emailContent.innerHTML = `
+                <div class="email-header">
+                    <h2>${fullEmail.subject}</h2>
+                    <p><strong>De:</strong> ${fullEmail.from}</p>
+                    <p><strong>Data:</strong> ${fullEmail.date}</p>
+                    ${attachmentsHtml}
+                </div>
+                <div class="email-body">${fullEmail.htmlBody || fullEmail.textBody}</div>
+            `;
         }
 
         // Função para exibir a lista de emails recebidos
@@ -368,24 +394,12 @@
             }
 
             try {
-                const emails = await getEmailDetails(activeEmail);
+                const emails = await getEmailsDetails(activeEmail);
                 currentEmails = emails;
-                emailList.innerHTML = '';
-
-                for (const email of emails) {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'email-item' + (email.seen ? '' : ' unread');
-                    listItem.innerHTML = `
-                        <div class="email-subject">${email.subject}</div>
-                        <div class="email-from">${email.from}</div>
-                        <div class="email-date">${email.date}</div>
-                    `;
-                    listItem.addEventListener('click', () => displayEmailContent(email.id));
-                    emailList.appendChild(listItem);
-                }
-
+                renderEmailList(emails);
                 showEmailList();
             } catch (error) {
+                console.error("Erro ao buscar emails:", error);
                 emailList.innerHTML = `<li>Erro ao buscar e-mails: ${error.message}</li>`;
             }
         }
@@ -394,26 +408,10 @@
         async function displayEmailContent(id) {
             try {
                 const fullEmail = await getEmailContent(activeEmail, id);
-                let attachmentsHtml = '';
-                if (fullEmail.attachments && fullEmail.attachments.length > 0) {
-                    attachmentsHtml = '<div class="attachments">Anexos: ' +
-                        fullEmail.attachments.map(att => 
-                            `<a href="${createAttachmentLink(activeEmail, id, att.filename)}" class="attachment" download><i class="fas fa-paperclip"></i> ${att.filename}</a>`
-                        ).join('') + '</div>';
-                }
-
-                emailContent.innerHTML = `
-                    <div class="email-header">
-                        <h2>${fullEmail.subject}</h2>
-                        <p><strong>De:</strong> ${fullEmail.from}</p>
-                        <p><strong>Data:</strong> ${fullEmail.date}</p>
-                        ${attachmentsHtml}
-                    </div>
-                    <div class="email-body">${fullEmail.htmlBody || fullEmail.textBody}</div>
-                `;
-
+                renderEmailContent(fullEmail);
                 showEmailContent();
             } catch (error) {
+                console.error("Erro ao carregar o conteúdo do email:", error);
                 emailContent.innerHTML = `<p>Erro ao carregar o conteúdo do e-mail: ${error.message}</p>`;
             }
         }
@@ -452,6 +450,21 @@
 
         // Evento para voltar para a lista de emails
         backToInbox.addEventListener('click', showEmailList);
+
+        // Funções para mostrar a lista de emails e o conteúdo do email
+        function showEmailList() {
+            emailList.style.display = 'block';
+            emailContent.style.display = 'none';
+            backToInbox.style.display = 'none';
+            emailContainer.style.flexDirection = 'row';
+        }
+
+        function showEmailContent() {
+            emailList.style.display = 'block';
+            emailContent.style.display = 'block';
+            backToInbox.style.display = 'block';
+            emailContainer.style.flexDirection = 'row';
+        }
 
         // Inicialização do componente
         (async function init() {
